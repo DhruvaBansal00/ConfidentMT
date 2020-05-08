@@ -163,8 +163,8 @@ def score_target_hypo(args, a, b, c, lenpen, target_outfile, hypo_outfile, score
                                     h.write("Hypothesis = " + ordered_hypos[key])
                                     s.write("NCD Score = " + str(ordered_scores[key])+"\n")
                                     l.write("LM Score = " + str(ordered_lm[key])+"\n")
-                                    f.write("Forward Score = " + str(ordered_fw[key]+ "\n"))
-                                    f.write("Backward Score = " + str(ordered_bw[key]+"\n"))
+                                    f.write("Forward Score = " + str(ordered_fw[key])+ "\n")
+                                    f.write("Backward Score = " + str(ordered_bw[key])+"\n")
 
 
 
