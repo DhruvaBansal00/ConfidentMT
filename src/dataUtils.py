@@ -5,6 +5,7 @@ import random
 from sklearn.metrics import auc
 import statistics
 import os
+from translation import Translation
 
 def compute_exclued_included_sentenceBleuScore(acceptedTranslations, rejectedTranslations):
     acceptedScore = 0 if len(acceptedTranslations) == 0 else sum([translation.score for translation in acceptedTranslations])/len(acceptedTranslations)
