@@ -3,6 +3,7 @@ from statistics import mean, median
 from translation import Translation
 import const
 import copy
+import subprocess
 
 def storeTranslationStatistics():
 
@@ -43,20 +44,11 @@ def storeTranslationStatistics():
     NMT_original.close()
     return translations
 
-def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, dataFolder="data-bin/wiki_ne_en_bpe5000/"):
+def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, runFairSeqGenerate, dataFolder="data-bin/wiki_ne_en_bpe5000/"):
 
-
-    fairseqGenerate = (f'fairseq-generate'
-                       f'{dataFolder}'
-                       f'--source-lang {sourceLang} --target-lang {targetLang}'
-                       f'--path {fwModel}'
-                       f'--beam 5 --lenpen 1.2'
-                       f'--gen-subset {dataSet}'
-                       f'--remove-bpe=sentencepiece'
-                       f'--sacrebleu > {const.FAIRSEQ_GENERATE_FILE}')
-    os.system(fairseqGenerate)
-
+    runFairSeqGenerate(dataFolder, sourceLang, targetLang, fwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     translations = storeTranslationStatistics()
+    return translations
 
 
 
