@@ -33,7 +33,7 @@ def storeTranslationStatistics():
             NMT_original.write(source)            
         elif line.startswith("P-"):
             scores = [float(i) for i in line.split("\t")[1].split(" ")]
-            currTranslation.avgLP, currTranslation.minLP, currTranslation.medianLP, currTranslation.maxLP, currTranslation.sumLP = mean(scores), min(scores), median(scores), max(scores), sum(scores)
+            currTranslation.avgLP, currTranslation.minLP, currTranslation.medianLP, currTranslation.maxLP, currTranslation.sumLP = [mean(scores), min(scores), median(scores), max(scores), sum(scores)]
             Sentence_stats.write(str(mean(scores))+" "+str(min(scores))+" "+str(median(scores))+" "+str(max(scores))+" "+str(sum(scores))+" "+str(translation_id)+"\n")
             translations.append(copy.deepcopy(currTranslation))
             currTranslation = Translation()
