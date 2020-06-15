@@ -13,6 +13,73 @@ import numpy as np
 import string
 import fastBPE
 
+def graphStatistics(translations, acceptThreshold):
+    index_to_label = {0: "Average Logprob", 1: "Min Logprob", 2: "Median Logprob", 
+                  3: "Max Logprob", 5: "Number of Rare words in Source", 
+                  6: "Number of Rare words in Translation", 7: "Rare in source - rare in translation", 
+                  8: "Longest repeated substring length english", 9: "Longest repeated substring length nepali",
+                  10: "Token Logprob sum", 11: "Backward Model score", 12: "Language Model score", 
+                  13: "Number of . and : in Translation", 14:"Number of | in Source",
+                  15:"| in Source - . and : in Translation", 16: "Max unigram count in translation", 
+                  17: "Max bigram count in translation", 18: "Max trigram count in translation", 
+                  19: "Translation Length", 20: "Source length", 21: "Ratio between source and translation length"}
+    indices = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+
+    for i in indices:
+        accepted_set_stats = [[],[]]
+        rejected_set_stats = [[],[]]
+        for translation in translations:  
+            if translation.sbleu > acceptThreshold:
+                accepted_set_stats[0].append(translation.features[i])
+                accepted_set_stats[1].append(translation.sbleu)
+            else:
+                rejected_set_stats[0].append(translation.features[i])
+                rejected_set_stats[1].append(translation.sbleu)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+
+        ax.scatter(accepted_set_stats[0], accepted_set_stats[1], alpha=0.8, c="blue", edgecolors='none', s=30, label="Accepted")
+        ax.scatter(rejected_set_stats[0], rejected_set_stats[1], alpha=0.8, c="red", edgecolors='none', s=30, label="Rejected")
+
+        plt.xlabel(index_to_label[i]) 
+        plt.ylabel('Sentence BLEU') 
+        plt.title(index_to_label[i] + ' vs Sentence BLEU')
+        plt.legend(loc=1)
+        plt.show()
+
+def addSentenceLengthFeatures(translations):
+    for translation in translations:
+        translation.transLength = len(translation.hypothesis)
+        translation.sourceLength = len(translation.source)
+
+def ngramCalculator(string, n):
+    max_freq = 0
+    ngram_dict = {}
+    string_arr = string.split()
+    length = n
+    while n <= len(string_arr):
+        curr_window = str(string_arr[n-length:n])
+        if curr_window in ngram_dict:
+            ngram_dict[curr_window] += 1
+        else:
+            ngram_dict[curr_window] = 1
+        max_freq = max(max_freq, ngram_dict[curr_window])
+        n += 1
+    return max_freq
+
+def addNgramFeatures(translations):
+    for translation in translations:
+        translation.unigram = ngramCalculator(translation.hypothesis, 1)
+        translation.bigram = ngramCalculator(translation.hypothesis, 2)
+        translation.trigram = ngramCalculator(translation.hypothesis, 3)
+
+
+def addSentenceEndFeatures(translations):
+    for translation in translations:
+        translation.sentEndsTrans = translation.hypothesis.count(":") + translation.hypothesis.count(".")
+        translation.sentEndsSource = translation.source.count("।")
+
 def addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel):
     bpe = fastBPE.fastBPE(const.BPE_CODE)
     translation_text = [translation.hypothesis for translation in translations]
@@ -141,7 +208,7 @@ def initializeTranslations():
     NMT_original.close()
     return translations
 
-def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, FairseqWrapper, dataFolder="data-bin/wiki_ne_en_bpe5000/"):
+def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, FairseqWrapper, dataFolder="data-bin/wiki_ne_en_bpe5000/", produceGraphs=False):
 
     FairseqWrapper.runFairseqGenerate(dataFolder, sourceLang, targetLang, fwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     translations = initializeTranslations()
@@ -153,7 +220,14 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
     FairseqWrapper.runFairseqGenerate(dataFolder, targetLang, sourceLang, bwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     addBackwardModelFeatures(translations, FairseqWrapper)
     addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel)
+    addSentenceEndFeatures(translations)
+    addNgramFeatures(translations)
+    for translation in translations:
+        translation.populateFeatures()
+    if produceGraphs:
+        graphStatistics(translation, 15)
     return translations
+
 
 
 

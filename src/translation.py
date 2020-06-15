@@ -27,10 +27,10 @@ class Translation:
         self.transLength = None 
         self.sourceLength = None
     
-    def populateFeatures(self, indices):
+    def populateFeatures(self):
         self.features = [self.avgLP, self.minLP, self.medianLP, self.maxLP, self.sbleu, self.rareSource, self.rareTrans,
-                      self.rareSource - self.rareTrans, self.repeatSource, self.repeatTrans, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
+                      self.rareSource - self.rareTrans, self.repeatTrans, self.repeatSource, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
                       self.sentEndsSource, self.sentEndsSource - self.sentEndsTrans, self.unigram, self.bigram, self.trigram,
-                      self.transLength, self.sourceLength, self.sourceLength/(float(self.transLength))][indices]
+                      self.transLength, self.sourceLength, self.sourceLength/(float(self.transLength))]
     def __repr__(self):
         return str(self.sbleu)
