@@ -11,6 +11,43 @@ from numpy import arange
 import random
 import numpy as np
 import string
+import fastBPE
+
+def addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel):
+    bpe = fastBPE.fastBPE(const.BPE_CODE)
+    translation_text = [translation.hypothesis for translation in translations]
+    bpe_text = bpe.apply(translation_text)
+
+    bpe_translations = open(const.BPE_TRANSLATIONS, "w")
+    bpe_translations.writelines(bpe_text)
+    bpe_translations.close()
+
+    FairseqWrapper.runFairseqPreprocess(const.BPE_DICTIONARY, dataSet+"pref", const.BPE_TRANSLATIONS, const.BPE_PREPROCESSED_TRNS)
+    FairseqWrapper.runFairseqEvalLM(const.BPE_PREPROCESSED_TRNS, lmModel, 128, 1024, dataSet, const.TRANSLATION_LM_SCORE)
+
+    translation_lm_scores = open(const.TRANSLATION_LM_SCORE, 'r')
+    for translation in translation_lm_scores:
+        index = translation.split(" ")[0]
+        if index.isdigit():
+            scores = translation.split("[")[1:]
+            lmScore = mean([float(i.split("]")[0]) for i in scores])
+            translations[int(index)].lmScore = lmScore
+            print(translations[int(index)].hypothesis)
+    
+    translation_lm_scores.close()
+
+
+def addBackwardModelFeatures(translations, FairseqWrapper):
+    id_to_index = {}
+    for index, translation in enumerate(translations):
+        id_to_index[translation.trnID] = index
+
+    bwModelResults = open(const.FAIRSEQ_GENERATE_FILE, 'r')
+    for line in bwModelResults:
+        if line.startswith("P-"):
+            translation_id = float(line.split("\t")[0].split("-")[1])
+            scores = [float(i) for i in line.split("\t")[1].split(" ")]
+            translations[id_to_index[translation_id]].backwardAvgLP = mean(scores)
 
 def longestRepeatedSubstring(str): 
     n = len(str) 
@@ -113,6 +150,9 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
     addRareWordFeatures(translations, lambda x: x.hypothesis, lambda x, f: exec("x.rareTrans = f"))
     addRareWordFeatures(translations, lambda x: x.source, lambda x, f: exec("x.rareSource = f"))
     addRepeatedStringFeatures(translations)
+    FairseqWrapper.runFairseqGenerate(dataFolder, targetLang, sourceLang, bwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
+    addBackwardModelFeatures(translations, FairseqWrapper)
+    addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel)
     return translations
 
 
