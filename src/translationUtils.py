@@ -23,7 +23,7 @@ def saveData(translations, dataSet):
         sentenceFile.write(translation.hypothesis)
         sentenceFile.write(str(translation.trnID)+"\n")
 
-        featureFile.write(" ".join(translation.getProperties())+"\n")
+        featureFile.write(" ".join([str(i) for i in translation.getProperties()])+"\n")
     
     sentenceFile.close()
     featureFile.close()
@@ -222,7 +222,8 @@ def initializeTranslations():
     NMT_original.close()
     return translations
 
-def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, FairseqWrapper, dataFolder="data-bin/wiki_ne_en_bpe5000/", produceGraphs=False):
+def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, targetLang, FairseqWrapper,
+                             dataFolder="data-bin/wiki_ne_en_bpe5000/", produceGraphs=False, saveTranslations=False):
 
     FairseqWrapper.runFairseqGenerate(dataFolder, sourceLang, targetLang, fwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     translations = initializeTranslations()
@@ -242,6 +243,8 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
     if produceGraphs:
         print(len(translations))
         graphStatistics(translations, 15)
+    if saveTranslations:
+        saveData(translations, dataSet)
     return translations
 
 

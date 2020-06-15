@@ -9,7 +9,7 @@ from translation import Translation
 import const
 import copy
 
-def createObjectsFromFile(sentenceFile, featureFile, dataSet):
+def createObjectsFromFile(dataSet):
     sentenceFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_SENTENCES, "r")
     featureFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_FEATURES, "r")
     translations = []
@@ -19,7 +19,7 @@ def createObjectsFromFile(sentenceFile, featureFile, dataSet):
     while currIndex < len(sentenceData):
         currTranslation = Translation()
         currTranslation.source, currTranslation.reference, currTranslation.hypothesis, currTranslation.trnID = [sentenceData[currIndex], sentenceData[currIndex + 1], sentenceData[currIndex + 2], float(sentenceData[currIndex + 3])]
-        currTranslation.loadProperties([float(i.strip('\n')) for i in featureData[currIndex/4].split(" ")])
+        currTranslation.loadProperties([float(i.strip('\n')) for i in featureData[int(currIndex/4)].split(" ")])
         currIndex += 4
         translations.append(copy.deepcopy(currTranslation))
     
