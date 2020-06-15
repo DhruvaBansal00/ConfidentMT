@@ -1,6 +1,6 @@
 import classifierTrainers
 import dataUtils
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 import numpy as np
 
 def precisionCurveFromClassification(trainTranslations, testTranslations, classifier, FairseqWrapper, thresholds, featureIndices):

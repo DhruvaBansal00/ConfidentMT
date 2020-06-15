@@ -1,7 +1,7 @@
 from translation import Translation
 import translationUtils
 import dataUtils
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 def splitByThreshold(translations, threshold, featureIndex):
     acceptedTranslations = []
