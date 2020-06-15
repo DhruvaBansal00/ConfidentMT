@@ -32,7 +32,7 @@ def compute_exclued_included_sentenceBleuScore(acceptedTranslations, rejectedTra
 
     return rejectedScore, acceptedScore
 
-def compute_excluded_included_score (acceptedTranslations, rejectedTranslations, FairseqWrapper):
+def compute_excluded_included_score(acceptedTranslations, rejectedTranslations, FairseqWrapper):
     if len(acceptedTranslations) != 0:
         temporary_reference_inclusion = open(const.INCLUSION_REFERENCE, "w")
         temporary_output_inclusion = open(const.INCLUSION_OUTPUT, "w")
@@ -154,3 +154,6 @@ def calculateAccuracy(predictedClasses, groundTruth):
     print("Incorrectly accepted = " + str(1 - correct_rejected/total_rejected))
 
     print("Total Accuracy = " + str((correct_accepted + correct_rejected)/(total_accepted + total_rejected)))
+
+def calculatedAcceptedFraction(predictedClasses):
+    return len([i for i in predictedClasses if i > 0])/len(predictedClasses)

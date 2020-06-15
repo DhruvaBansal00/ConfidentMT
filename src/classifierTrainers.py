@@ -29,30 +29,30 @@ class CustomEnsembleClassifier:
                 probabilities += clf.predict_proba(X)
         return np.argmax(np.array(probabilities), axis=1)
 
-def trainLogisticRegressionClassifier(X, Y, verbose=True):
+def trainLogisticRegressionClassifier(X, Y, verbose=False):
     if verbose:
         print("Traning Logistic Regression Classifier")
     clf = LogisticRegression(random_state=42)
     clf.fit(X, Y)
     return clf
 
-def trainMLPClassifier(X, Y, verbose=True):
+def trainMLPClassifier(X, Y, verbose=False):
     if verbose:
         print("Training MLP Classifier")
     clf = MLPClassifier(hidden_layer_sizes=(256, 1024, 2048, 1024, 256), random_state=42,
                         max_iter=200, learning_rate='adaptive', learning_rate_init=0.0001, activation='relu',
-                        verbose=True)
+                        verbose=verbose)
     clf.fit(X, Y)
     return clf
 
-def trainKNeighborsClassifier(X, Y, verbose=True):
+def trainKNeighborsClassifier(X, Y, verbose=False):
     if verbose:
         print("Training KNeighbors Classifier")
     clf = KNeighborsClassifier(100)
     clf.fit(X, Y)
     return clf
 
-def trainGaussianProcessClassifier(X, Y, verbose=True):
+def trainGaussianProcessClassifier(X, Y, verbose=False):
     if verbose:
         print("Training Gaussian Process Classifier")
     length_scale = [1 for i in range(len(X[0]))]
@@ -60,16 +60,16 @@ def trainGaussianProcessClassifier(X, Y, verbose=True):
     clf.fit(X, Y)
     return clf
 
-def trainCustomEnsemble(X, Y, maxDepth=8, estimators=100, verbose=True, subsetTraining=False):
+def trainCustomEnsemble(X, Y, maxDepth=8, estimators=100, verbose=False, subsetTraining=False):
     if verbose:
         print("Training custom ensemble")
     rf = RandomForestClassifier(max_depth=maxDepth, random_state=42)
     grad = GradientBoostingClassifier(random_state=42)
     ada = AdaBoostClassifier(n_estimators=estimators, random_state=42)
-    dl = MLPClassifier(hidden_layer_sizes=(256,512,256), random_state=42, max_iter=100)
     kn = KNeighborsClassifier(100)
+    lg = LogisticRegression(random_state=42)
 
-    classifiers = [rf, grad, ada, kn]
+    classifiers = [rf, grad, ada, kn, lg]
 
     Xs = [X for i in range(len(classifiers))]
     Ys = [Y for i in range(len(classifiers))]
@@ -96,7 +96,7 @@ def trainCustomEnsemble(X, Y, maxDepth=8, estimators=100, verbose=True, subsetTr
     return CustomEnsembleClassifier(classifiers)
     
 
-def trainEnsembleClassifier(X, Y, maxDepth=8, estimators=100, verbose=True):
+def trainEnsembleClassifier(X, Y, maxDepth=8, estimators=100, verbose=False):
     if verbose:
         print("Training an ensemble of Random Forest and Gradient Boosting Classifiers")
 
@@ -108,28 +108,28 @@ def trainEnsembleClassifier(X, Y, maxDepth=8, estimators=100, verbose=True):
     return clf
 
 
-def trainRandomForestClassifier(X, Y, maxDepth=8, verbose=True):
+def trainRandomForestClassifier(X, Y, maxDepth=8, verbose=False):
     if verbose:
         print("Training Random Forest classifier")
     clf = RandomForestClassifier(max_depth=maxDepth, random_state=42)
     clf.fit(X, Y)
     return clf
 
-def trainAdaBoostClassifier(X, Y, estimators=100, verbose=True):
+def trainAdaBoostClassifier(X, Y, estimators=100, verbose=False):
     if verbose:
         print("Training AdaBoosted Decision Tree classifier")
     clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=1), n_estimators=estimators, random_state=42)
     clf.fit(X, Y)
     return clf
 
-def trainGradientBoostingClassifier(X, Y, verbose=True):
+def trainGradientBoostingClassifier(X, Y, verbose=False):
     if verbose:
         print("Training Graident Boosted classifier")
     clf = GradientBoostingClassifier(random_state=42)
     clf.fit(X, Y)
     return clf
 
-def trainSVM(X, Y, verbose=True):
+def trainSVM(X, Y, verbose=False):
     if verbose:
         print("Training SVM classifier")
     clf = SVC(gamma='auto')
