@@ -12,6 +12,29 @@ import random
 import numpy as np
 import string
 
+def longestRepeatedSubstring(str): 
+    n = len(str) 
+    LCSRe = [[0 for x in range(n + 1)]  for y in range(n + 1)] 
+    res_length = 0
+    index = 0
+
+    for i in range(1, n + 1): 
+        for j in range(i + 1, n + 1): 
+            if (str[i - 1] == str[j - 1] and
+                LCSRe[i - 1][j - 1] < (j - i)): 
+                LCSRe[i][j] = LCSRe[i - 1][j - 1] + 1
+                if (LCSRe[i][j] > res_length): 
+                    res_length = LCSRe[i][j] 
+                    index = max(i, index)                 
+            else: 
+                LCSRe[i][j] = 0
+    return res_length
+
+def addRepeatedStringFeatures(translations):
+    for translation in translations:
+        translation.repeatSource = longestRepeatedSubstring(translation.source)
+        translation.repeatTrans = longestRepeatedSubstring(translation.hypothesis)
+
 def addRareWordFeatures(translations, sentence, feature):
     dict_to_freq = {}
     for translation in translations:
@@ -29,8 +52,9 @@ def addRareWordFeatures(translations, sentence, feature):
         sentence_words = sentence(translation).split(" ")
         rareWordNum = 0
         for word in sentence_words:
-            currWord = word.translate(str.maketrans({a:None for a in string.punctuation}))
-            rareWordNum += 1 if dict_to_freq[currWord] <= const.RARE_THREHOLD else 0
+            if len(word) > 1:
+                currWord = word.translate(str.maketrans({a:None for a in string.punctuation}))
+                rareWordNum += 1 if dict_to_freq[currWord] <= const.RARE_THREHOLD else 0
         feature(translation, rareWordNum)
 
 
@@ -86,8 +110,9 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
     translations = initializeTranslations()
     FairseqWrapper.runFairseqScore(const.NMT_OUTPUT, const.NMT_GROUND_TRUTH, const.SENTENCE_BLEU)
     addSentenceBleuStat(translations)
-    addRareWordFeatures(translations, lambda x: x.translation, lambda x, f: exec("x.rareTrans = f"))
+    addRareWordFeatures(translations, lambda x: x.hypothesis, lambda x, f: exec("x.rareTrans = f"))
     addRareWordFeatures(translations, lambda x: x.source, lambda x, f: exec("x.rareSource = f"))
+    addRepeatedStringFeatures(translations)
     return translations
 
 

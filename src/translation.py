@@ -14,6 +14,8 @@ class Translation:
         self.sbleu = None ##sentence bleu
         self.rareSource = None 
         self.rareTrans = None
+        self.repeatSource = None
+        self.repeatTrans = None
         self.sumLP = None 
         self.backwardAvgLP = None 
         self.lmScore = None 
@@ -27,7 +29,7 @@ class Translation:
     
     def populateFeatures(self, indices):
         self.features = [self.avgLP, self.minLP, self.medianLP, self.maxLP, self.sbleu, self.rareSource, self.rareTrans,
-                      self.rareSource - self.rareTrans, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
+                      self.rareSource - self.rareTrans, self.repeatSource, self.repeatTrans, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
                       self.sentEndsSource, self.sentEndsSource - self.sentEndsTrans, self.unigram, self.bigram, self.trigram,
                       self.transLength, self.sourceLength, self.sourceLength/(float(self.transLength))][indices]
     def __repr__(self):
