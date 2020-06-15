@@ -32,88 +32,62 @@ def compute_exclued_included_sentenceBleuScore(acceptedTranslations, rejectedTra
 
     return rejectedScore, acceptedScore
 
-def compute_excluded_included_score (acceptedTranslations, rejectedTranslations):
+def compute_excluded_included_score (acceptedTranslations, rejectedTranslations, FairseqWrapper):
     if len(acceptedTranslations) != 0:
-        temporary_reference_inclusion = open("analysis/temporary_reference_inclusion.data", "w")
-        temporary_output_inclusion = open("analysis/temporary_output_inclusion.data", "w")
-
-    
+        temporary_reference_inclusion = open(const.INCLUSION_REFERENCE, "w")
+        temporary_output_inclusion = open(const.INCLUSION_OUTPUT, "w")
         for translation in acceptedTranslations:
             temporary_reference_inclusion.write(translation.reference)
             temporary_output_inclusion.write(translation.translation)
-
         temporary_reference_inclusion.close()
         temporary_output_inclusion.close()
 
-
-        fairseq_command = (f'fairseq-score --sys analysis/temporary_output_inclusion.data'
-                           f'--ref analysis/temporary_reference_inclusion.data'
-                           f' --sacrebleu > analysis/inclusion_result.data')
-        os.system(fairseq_command)
-
-        temporary_inclusion_result = open("analysis/inclusion_result.data")
+        FairseqWrapper.runFairseqScore(const.INCLUSION_OUTPUT, const.INCLUSION_REFERENCE, const.INCLUSION_RESULT)
+        temporary_inclusion_result = open(const.INCLUSION_RESULT, 'r')
         inclusion_result_string = [line for line in temporary_inclusion_result][1].split(" ")[2]
-
         temporary_reference_inclusion.close()
         temporary_output_inclusion.close()
         temporary_inclusion_result.close()
-
     else:
         inclusion_result_string = "0"
 
     if len(rejectedTranslations) != 0:
-
-        temporary_reference_exclusion = open("analysis/temporary_reference_exclusion.data", "w")
-        temporary_output_exclusion = open("analysis/temporary_output_exclusion.data", "w")
-        
+        temporary_reference_exclusion = open(const.EXCLUSION_REFERENCE, "w")
+        temporary_output_exclusion = open(const.EXCLUSION_OUTPUT, "w")
         for translation in rejectedTranslations:
             temporary_reference_exclusion.write(translation.reference)
             temporary_output_exclusion.write(translation.translation)
-
-        
         temporary_reference_exclusion.close()
         temporary_output_exclusion.close()
 
-        fairseq_command  = (f'fairseq-score --sys analysis/temporary_output_exclusion.data'
-                            f'--ref analysis/temporary_reference_exclusion.data'
-                            f' --sacrebleu > analysis/exclusion_result.data')
-        os.system(fairseq_command)
-
-        temporary_exclusion_result = open("analysis/exclusion_result.data")
+        FairseqWrapper.runFairseqScore(const.EXCLUSION_OUTPUT, const.EXCLUSION_REFERENCE, const.EXCLUSION_RESULT)
+        temporary_exclusion_result = open(const.EXCLUSION_RESULT, 'r')
         exclusion_result_string = "0" if len(rejectedTranslations) == 0 else [line for line in temporary_exclusion_result][1].split(" ")[2]
-
         temporary_reference_exclusion.close()
         temporary_output_exclusion.close()
-        temporary_exclusion_result.close()
-    
+        temporary_exclusion_result.close() 
     else:
         exclusion_result_string = "0"
 
     return float(exclusion_result_string), float(inclusion_result_string)
 
 
-def getTrainTestSets(trainTranslations, testTranslations, threshold_train, threshold_test, avgLogProb):
+def getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices):
     trainFeatures = []
     trainY = []
     testFeatures = []
     testY = []
 
     for translation in trainTranslations:
-        trainFeatures.append(translation.features)
-        if avgLogProb:
-            if translation.features[0] < threshold_train:
-                trainY.append(0)
-            else:
-                trainY.append(1)
+        trainFeatures.append(translation.features[featureIndices])
+        if translation.sbleu < threshold:
+            trainY.append(0)
         else:
-            if translation.score < threshold_train:
-                trainY.append(0)
-            else:
-                trainY.append(1)
+            trainY.append(1)
     
     for translation in testTranslations:
-        testFeatures.append(translation.features)
-        if translation.score < threshold_test:
+        testFeatures.append(translation.features[featureIndices])
+        if translation.sbleu < threshold:
             testY.append(0)
         else:
             testY.append(1)
