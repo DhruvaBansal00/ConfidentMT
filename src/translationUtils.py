@@ -99,7 +99,6 @@ def addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel):
             scores = translation.split("[")[1:]
             lmScore = mean([float(i.split("]")[0]) for i in scores])
             translations[int(index)].lmScore = lmScore
-            print(translations[int(index)].hypothesis)
     
     translation_lm_scores.close()
 
@@ -222,10 +221,12 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
     addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel)
     addSentenceEndFeatures(translations)
     addNgramFeatures(translations)
+    addSentenceLengthFeatures(translations)
     for translation in translations:
         translation.populateFeatures()
     if produceGraphs:
-        graphStatistics(translation, 15)
+        print(len(translations))
+        graphStatistics(translations, 15)
     return translations
 
 
