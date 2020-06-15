@@ -135,3 +135,12 @@ def trainSVM(X, Y, verbose=False):
     clf = SVC(gamma='auto')
     clf.fit(X, Y)
     return clf
+
+def getTrainerFromClassifier(classifier):
+    string_to_trainer = {"LogisticRegression": trainLogisticRegressionClassifier, "NeuralNet": trainMLPClassifier,
+                        "KNearestNeighbors": trainKNeighborsClassifier, "GaussianProcessClassifier": trainGaussianProcessClassifier,
+                        "CustomEnsemble": trainCustomEnsemble, "RandomForestClassifier":  trainRandomForestClassifier,
+                        "AdaboostClassifier": trainAdaBoostClassifier, "GradientBoostingClassifier": trainGradientBoostingClassifier,
+                        "SVM": trainSVM}
+    
+    return string_to_trainer[classifier]

@@ -9,7 +9,7 @@ def precisionCurveFromClassification(trainTranslations, testTranslations, classi
 
     for threshold in tqdm(thresholds):
         trainX, trainY, testX, testY = dataUtils.getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices)
-        currClassifier = classifierTrainers.classifier(trainX, trainY)
+        currClassifier = classifierTrainers.getTrainerFromClassifier(classifier)(trainX, trainY)
         predictions = currClassifier.predict(testX)
 
         acceptedTranslations = np.array(testTranslations)[np.array(predictions) > 0]
@@ -27,7 +27,7 @@ def verboseTraining(trainTranslations, testTranslations, classifier, FairseqWrap
     
     print("#################################################")
     trainX, trainY, testX, testY = dataUtils.getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices)
-    currClassifier = classifierTrainers.classifier(trainX, trainY, verbose=True)
+    currClassifier = classifierTrainers.getTrainerFromClassifier(classifier)(trainX, trainY, verbose=True)
 
     print("Train Accuracy")
     predictions = currClassifier.predict(trainX)
