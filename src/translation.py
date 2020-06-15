@@ -32,5 +32,18 @@ class Translation:
                       self.rareSource - self.rareTrans, self.repeatTrans, self.repeatSource, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
                       self.sentEndsSource, self.sentEndsSource - self.sentEndsTrans, self.unigram, self.bigram, self.trigram,
                       self.transLength, self.sourceLength, self.sourceLength/(float(self.transLength))]
+    
+    def getProperties(self):
+        return [self.avgLP, self.minLP, self.medianLP, self.maxLP, self.sbleu, self.rareSource, self.rareTrans,
+                      self.repeatTrans, self.repeatSource, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans,
+                      self.sentEndsSource, self.unigram, self.bigram, self.trigram, self.transLength, self.sourceLength]
+    
+    def loadProperties(self, props):
+        self.avgLP, self.minLP, self.medianLP, self.maxLP, self.sbleu, self.rareSource, self.rareTrans, \
+            self.repeatTrans, self.repeatSource, self.sumLP, self.backwardAvgLP, self.lmScore, self.sentEndsTrans, \
+            self.sentEndsSource, self.unigram, self.bigram, self.trigram, self.transLength, self.sourceLength = props
+        
+        self.populateFeatures()
+
     def __repr__(self):
         return str(self.sbleu)

@@ -6,6 +6,24 @@ from sklearn.metrics import auc
 import statistics
 import os
 from translation import Translation
+import const
+import copy
+
+def createObjectsFromFile(sentenceFile, featureFile, dataSet):
+    sentenceFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_SENTENCES, "r")
+    featureFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_FEATURES, "r")
+    translations = []
+    sentenceData = sentenceFile.readlines()
+    featureData = featureFile.readlines()
+    currIndex = 0
+    while currIndex < len(sentenceData):
+        currTranslation = Translation()
+        currTranslation.source, currTranslation.reference, currTranslation.hypothesis, currTranslation.trnID = [sentenceData[currIndex], sentenceData[currIndex + 1], sentenceData[currIndex + 2], float(sentenceData[currIndex + 3])]
+        currTranslation.loadProperties([float(i.strip('\n')) for i in featureData[currIndex/4].split(" ")])
+        currIndex += 4
+        translations.append(copy.deepcopy(currTranslation))
+    
+    return translations
 
 def compute_exclued_included_sentenceBleuScore(acceptedTranslations, rejectedTranslations):
     acceptedScore = 0 if len(acceptedTranslations) == 0 else sum([translation.score for translation in acceptedTranslations])/len(acceptedTranslations)
@@ -73,20 +91,6 @@ def compute_excluded_included_score (acceptedTranslations, rejectedTranslations)
 
     return float(exclusion_result_string), float(inclusion_result_string)
 
-def readTranslations(sentenceFile, featureArray):
-    translations = []
-    temp = []
-    index = 0
-    for line in sentenceFile:
-        if len(temp) < 3:
-            temp.append(line)
-        else:
-            score = float(line.strip("\n"))
-            translations.append(Translation(temp[0], temp[1], temp[2], score, featureArray[index]))
-            index += 1
-            temp = []
-    
-    return translations
 
 def getTrainTestSets(trainTranslations, testTranslations, threshold_train, threshold_test, avgLogProb):
     trainFeatures = []
@@ -130,22 +134,6 @@ def printDatasetClassProp(Y):
     for cls in classes:
         print("Proportion in class " + str(cls) + " = " + str(classes[cls]/total))
 
-def datasetReader(featureFile, labelFile):
-    files = [featureFile, labelFile]
-
-    X = []
-    Y = []
-
-    for lines in zip_longest(*files, fillvalue=''):
-        currX, currY = lines[0], float(lines[1].strip("\n"))
-        Xarr = []
-        features = currX.split()
-        for feature in features:
-            Xarr.append(float(feature.strip(",").strip("\n")))
-        X.append(Xarr)
-        Y.append(currY)
-    
-    return np.array(X), np.array(Y)
 
 def normalizeFeatures(trainX, testX):
     featureLists = [trainX[:, i] for i in range(trainX.shape[1])]

@@ -13,6 +13,21 @@ import numpy as np
 import string
 import fastBPE
 
+def saveData(translations, dataSet):
+    sentenceFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_SENTENCES, "w")
+    featureFile = open(const.CLASSIFICATION_DATASET+"/"+dataSet+"/"+const.CLASSIFICATION_FEATURES, "w")
+
+    for translation in translations:
+        sentenceFile.write(translation.source)
+        sentenceFile.write(translation.reference)
+        sentenceFile.write(translation.hypothesis)
+        sentenceFile.write(str(translation.trnID)+"\n")
+
+        featureFile.write(" ".join(translation.getProperties())+"\n")
+    
+    sentenceFile.close()
+    featureFile.close()
+
 def graphStatistics(translations, acceptThreshold):
     index_to_label = {0: "Average Logprob", 1: "Min Logprob", 2: "Median Logprob", 
                   3: "Max Logprob", 5: "Number of Rare words in Source", 
