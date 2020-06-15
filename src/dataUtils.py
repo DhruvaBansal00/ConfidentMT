@@ -26,9 +26,9 @@ def createObjectsFromFile(dataSet):
     return translations
 
 def compute_exclued_included_sentenceBleuScore(acceptedTranslations, rejectedTranslations):
-    acceptedScore = 0 if len(acceptedTranslations) == 0 else sum([translation.score for translation in acceptedTranslations])/len(acceptedTranslations)
+    acceptedScore = 0 if len(acceptedTranslations) == 0 else sum([translation.sbleu for translation in acceptedTranslations])/len(acceptedTranslations)
     
-    rejectedScore = 0 if len(rejectedTranslations) == 0 else sum([translation.score for translation in rejectedTranslations])/len(rejectedTranslations)
+    rejectedScore = 0 if len(rejectedTranslations) == 0 else sum([translation.sbleu for translation in rejectedTranslations])/len(rejectedTranslations)
 
     return rejectedScore, acceptedScore
 
@@ -38,11 +38,11 @@ def compute_excluded_included_score(acceptedTranslations, rejectedTranslations, 
         temporary_output_inclusion = open(const.INCLUSION_OUTPUT, "w")
         for translation in acceptedTranslations:
             temporary_reference_inclusion.write(translation.reference)
-            temporary_output_inclusion.write(translation.translation)
+            temporary_output_inclusion.write(translation.hypothesis)
         temporary_reference_inclusion.close()
         temporary_output_inclusion.close()
 
-        FairseqWrapper.runFairseqScore(const.INCLUSION_OUTPUT, const.INCLUSION_REFERENCE, const.INCLUSION_RESULT)
+        FairseqWrapper.runFairseqScore(const.INCLUSION_OUTPUT, const.INCLUSION_REFERENCE, const.INCLUSION_RESULT, "sacrebleu")
         temporary_inclusion_result = open(const.INCLUSION_RESULT, 'r')
         inclusion_result_string = [line for line in temporary_inclusion_result][1].split(" ")[2]
         temporary_reference_inclusion.close()
@@ -56,11 +56,11 @@ def compute_excluded_included_score(acceptedTranslations, rejectedTranslations, 
         temporary_output_exclusion = open(const.EXCLUSION_OUTPUT, "w")
         for translation in rejectedTranslations:
             temporary_reference_exclusion.write(translation.reference)
-            temporary_output_exclusion.write(translation.translation)
+            temporary_output_exclusion.write(translation.hypothesis)
         temporary_reference_exclusion.close()
         temporary_output_exclusion.close()
 
-        FairseqWrapper.runFairseqScore(const.EXCLUSION_OUTPUT, const.EXCLUSION_REFERENCE, const.EXCLUSION_RESULT)
+        FairseqWrapper.runFairseqScore(const.EXCLUSION_OUTPUT, const.EXCLUSION_REFERENCE, const.EXCLUSION_RESULT, "sacrebleu")
         temporary_exclusion_result = open(const.EXCLUSION_RESULT, 'r')
         exclusion_result_string = "0" if len(rejectedTranslations) == 0 else [line for line in temporary_exclusion_result][1].split(" ")[2]
         temporary_reference_exclusion.close()
@@ -79,14 +79,14 @@ def getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndi
     testY = []
 
     for translation in trainTranslations:
-        trainFeatures.append(translation.features[featureIndices])
+        trainFeatures.append([translation.features[i] for i in featureIndices])
         if translation.sbleu < threshold:
             trainY.append(0)
         else:
             trainY.append(1)
     
     for translation in testTranslations:
-        testFeatures.append(translation.features[featureIndices])
+        testFeatures.append([translation.features[i] for i in featureIndices])
         if translation.sbleu < threshold:
             testY.append(0)
         else:

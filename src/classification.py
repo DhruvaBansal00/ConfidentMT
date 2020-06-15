@@ -42,8 +42,8 @@ def verboseTraining(trainTranslations, testTranslations, classifier, FairseqWrap
     predictions = currClassifier.predict(testX)
     dataUtils.calculateAccuracy(predictions, testY)
     print("Percent acepted = " + str(100 * dataUtils.calculatedAcceptedFraction(predictions)))
-    acceptedTranslations = np.array(trainTranslations)[np.array(predictions) > 0]
-    rejectedTranslations = np.array(trainTranslations)[np.array(predictions) < 1]
+    acceptedTranslations = np.array(testTranslations)[np.array(predictions) > 0]
+    rejectedTranslations = np.array(testTranslations)[np.array(predictions) < 1]
     _, acceptedScore = dataUtils.compute_excluded_included_score(acceptedTranslations, rejectedTranslations, FairseqWrapper)
     print("Corpus BLEU score of accepted translations = " + str(acceptedScore))
     print("#################################################")

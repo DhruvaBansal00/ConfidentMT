@@ -227,7 +227,7 @@ def getTranslationFromDataset(dataSet, fwModel, bwModel, lmModel, sourceLang, ta
 
     FairseqWrapper.runFairseqGenerate(dataFolder, sourceLang, targetLang, fwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     translations = initializeTranslations()
-    FairseqWrapper.runFairseqScore(const.NMT_OUTPUT, const.NMT_GROUND_TRUTH, const.SENTENCE_BLEU)
+    FairseqWrapper.runFairseqScore(const.NMT_OUTPUT, const.NMT_GROUND_TRUTH, const.SENTENCE_BLEU, "sentence-bleu")
     addSentenceBleuStat(translations)
     addRareWordFeatures(translations, lambda x: x.hypothesis, lambda x, f: exec("x.rareTrans = f"))
     addRareWordFeatures(translations, lambda x: x.source, lambda x, f: exec("x.rareSource = f"))
