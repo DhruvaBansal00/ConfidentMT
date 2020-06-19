@@ -124,6 +124,10 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     backwardTranslations = parseGenerationResult()
     addSentenceBleuStat(backwardTranslations, FairseqWrapper)
 
+
+    english_translation_file = open(const.BACKWARD_DATASET+dataSet+"."+targetLang, 'w')
+    nepali_original_file = open(const.BACKWARD_DATASET+dataSet+"."+sourceLang, 'w')
+
     for btrans in backwardTranslations:
         translations[id_to_index[btrans.trnID]].backwardAvgLP, translations[id_to_index[btrans.trnID]].backwardSBleu = btrans.avgLP, btrans.sbleu 
 
