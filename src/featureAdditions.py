@@ -130,15 +130,24 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     nepali_original_file = open(const.BACKWARD_DATASET+dataSet+"."+sourceLang, 'w')
 
     for btrans in backwardTranslations:
-        translations[id_to_index[btrans.trnID]].backwardAvgLP, translations[id_to_index[btrans.trnID]].backwardSBleu = btrans.avgLP, btrans.sbleu
+        translations[id_to_index[btrans.trnID]].backwardRefAvgLP, translations[id_to_index[btrans.trnID]].backwardRefSBleu = btrans.avgLP, btrans.sbleu
 
     for translation in translations:
         english_translation_file.write(translation.hypothesis)
         nepali_original_file.write(translation.source) 
     
+    english_translation_file.close()
+    nepali_original_file.close() 
+    
     encode(const.SENTENCEPIECE_MODEL_NEEN, inputs =[const.BACKWARD_DATASET+dataSet+"."+targetLang, const.BACKWARD_DATASET+dataSet+"."+sourceLang],
             outputs =[const.BACKWARD_DATASET+dataSet+".bpe."+targetLang, const.BACKWARD_DATASET+dataSet+".bpe."+sourceLang], output_format="piece")
-
+    FairseqWrapper.runFairseqPreprocessBinarize(targetLang, sourceLang, dataSet+"pref", const.BACKWARD_DATASET+dataSet+".bpe", const.BACKWARD_DATASET)
+    FairseqWrapper.runFairseqGenerate(const.BACKWARD_DATASET, targetLang, sourceLang, bwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
+    
+    backwardTranslations = parseGenerationResult()
+    addSentenceBleuStat(backwardTranslations, FairseqWrapper)
+    for btrans in backwardTranslations:
+        translations[btrans.trnID].backwardsAvgLP, translations[btrans.trnID].backwardSBleu = btrans.avgLP, btrans.sbleu
 
 def longestRepeatedSubstring(str): 
     n = len(str) 
