@@ -12,6 +12,7 @@ import random
 import numpy as np
 import string
 import fastBPE
+from spm_encode import encode
 
 def parseGenerationResult():
     bleu_res = open(const.FAIRSEQ_GENERATE_FILE, "r")
@@ -100,7 +101,7 @@ def addLanguageModelFeatures(translations, FairseqWrapper, dataSet, lmModel):
     bpe_translations.writelines(bpe_text)
     bpe_translations.close()
 
-    FairseqWrapper.runFairseqPreprocess(const.BPE_DICTIONARY, dataSet+"pref", const.BPE_TRANSLATIONS, const.BPE_PREPROCESSED_TRNS)
+    FairseqWrapper.runFairseqPreprocessLM(const.BPE_DICTIONARY, dataSet+"pref", const.BPE_TRANSLATIONS, const.BPE_PREPROCESSED_TRNS)
     FairseqWrapper.runFairseqEvalLM(const.BPE_PREPROCESSED_TRNS, lmModel, 128, 1024, dataSet, const.TRANSLATION_LM_SCORE)
 
     translation_lm_scores = open(const.TRANSLATION_LM_SCORE, 'r')
@@ -129,7 +130,15 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     nepali_original_file = open(const.BACKWARD_DATASET+dataSet+"."+sourceLang, 'w')
 
     for btrans in backwardTranslations:
-        translations[id_to_index[btrans.trnID]].backwardAvgLP, translations[id_to_index[btrans.trnID]].backwardSBleu = btrans.avgLP, btrans.sbleu 
+        translations[id_to_index[btrans.trnID]].backwardAvgLP, translations[id_to_index[btrans.trnID]].backwardSBleu = btrans.avgLP, btrans.sbleu
+
+    for translation in translations:
+        english_translation_file.write(translation.hypothesis)
+        nepali_original_file.write(translation.source) 
+    
+    encode(const.SENTENCEPIECE_MODEL_NEEN, inputs =[const.BACKWARD_DATASET+dataSet+"."+targetLang, const.BACKWARD_DATASET+dataSet+"."+sourceLang],
+            outputs =[const.BACKWARD_DATASET+dataSet+".bpe."+targetLang, const.BACKWARD_DATASET+dataSet+".bpe."+sourceLang], output_format="piece")
+
 
 def longestRepeatedSubstring(str): 
     n = len(str) 
