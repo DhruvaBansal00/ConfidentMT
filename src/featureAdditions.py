@@ -37,7 +37,7 @@ def parseGenerationResult():
             translation_id = float(line.split("\t")[0].split("-")[1])
             source = line.split("\t")[1]
             currTranslation.source = source
-            currTranslation.trnID = translation_id
+            currTranslation.trnID = int(translation_id)
             NMT_original.write(source)            
         elif line.startswith("P-"):
             scores = [float(i) for i in line.split("\t")[1].split(" ")]
