@@ -129,8 +129,8 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     for btrans in backwardTranslations:
         translations[id_to_index[btrans.trnID]].backwardRefAvgLP, translations[id_to_index[btrans.trnID]].backwardRefSBleu = btrans.avgLP, btrans.sbleu
 
-    for f in glob.glob(const.BACKWARD_DATASET):
-        os.remove(f)
+    for f in glob.glob(const.BACKWARD_DATASET+"*/"):
+        FairseqWrapper.deleteFile(f)
 
     english_translation_file = open(const.BACKWARD_DATASET+dataSet+"."+targetLang, 'w')
     nepali_original_file = open(const.BACKWARD_DATASET+dataSet+"."+sourceLang, 'w')
