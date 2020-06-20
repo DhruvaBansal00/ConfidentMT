@@ -139,9 +139,9 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     english_translation_file.close()
     nepali_original_file.close() 
     
-    encode(const.SENTENCEPIECE_MODEL_NEEN, inputs =[const.BACKWARD_DATASET+dataSet+"."+targetLang, const.BACKWARD_DATASET+dataSet+"."+sourceLang],
+    encode(const.SENTENCEPIECE_MODEL_DIR+sourceLang+targetLang+".bpe.model", inputs =[const.BACKWARD_DATASET+dataSet+"."+targetLang, const.BACKWARD_DATASET+dataSet+"."+sourceLang],
             outputs =[const.BACKWARD_DATASET+dataSet+".bpe."+targetLang, const.BACKWARD_DATASET+dataSet+".bpe."+sourceLang], output_format="piece")
-    FairseqWrapper.runFairseqPreprocessBinarize(targetLang, sourceLang, dataSet+"pref", const.BACKWARD_DATASET+dataSet+".bpe", const.BACKWARD_DATASET)
+    FairseqWrapper.runFairseqPreprocessBinarize(targetLang, sourceLang, const.SENTENCEPIECE_MODEL_DIR+sourceLang+targetLang+"Dict.data", dataSet+"pref", const.BACKWARD_DATASET+dataSet+".bpe", const.BACKWARD_DATASET)
     FairseqWrapper.runFairseqGenerate(const.BACKWARD_DATASET, targetLang, sourceLang, bwModel, 5, 1.2, dataSet, "sentencepiece", const.FAIRSEQ_GENERATE_FILE)
     
     backwardTranslations = parseGenerationResult()
