@@ -113,7 +113,7 @@ def normalizeFeatures(trainX, testX, features):
     means = {}
     stdDv = {}
     for feature in features:
-        currData = trainX[:, feature]
+        currData = trainX[:][feature]
         means[feature] = statistics.mean(currData)
         stdDv[feature] = statistics.stdev(currData)
 
