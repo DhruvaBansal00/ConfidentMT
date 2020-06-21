@@ -149,7 +149,7 @@ def addBackwardModelFeatures(translations, FairseqWrapper, dataFolder, targetLan
     backwardTranslations = parseGenerationResult()
     addSentenceBleuStat(backwardTranslations, FairseqWrapper)
     for btrans in backwardTranslations:
-        translations[btrans.trnID].backwardsAvgLP, translations[btrans.trnID].backwardSBleu = btrans.avgLP, btrans.sbleu
+        translations[btrans.trnID].backwardAvgLP, translations[btrans.trnID].backwardSBleu = btrans.avgLP, btrans.sbleu
 
 def longestRepeatedSubstring(str): 
     n = len(str) 
