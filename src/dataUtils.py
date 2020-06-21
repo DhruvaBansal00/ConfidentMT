@@ -109,15 +109,19 @@ def printDatasetClassProp(Y):
         print("Proportion in class " + str(cls) + " = " + str(classes[cls]/total))
 
 
-def normalizeFeatures(trainX, testX):
-    featureLists = [trainX[:, i] for i in range(trainX.shape[1])]
+def normalizeFeatures(trainX, testX, features):
+    means = {}
+    stdDv = {}
+    for feature in features:
+        currData = trainX[:, feature]
+        means[feature] = statistics.mean(currData)
+        stdDv[feature] = statistics.stdev(currData)
 
-    #means and stddv calculated using training features only. 
-    means = [statistics.mean(feature) for feature in featureLists]
-    stdDv = [statistics.stdev(feature) for feature in featureLists]
-
-    trainX = np.array([[(row[i] - means[i]) / stdDv[i] for i in range(len(row))] for row in trainX])
-    testX = np.array([[(row[i] - means[i]) / stdDv[i] for i in range(len(row))] for row in testX])
+    sets = [trainX, testX]
+    for dataSet in sets: 
+        for currData in dataSet:
+            for feature in features:
+                currData[feature] = (currData[feature] - means[feature])/stdDv[feature]
 
     return trainX, testX
 

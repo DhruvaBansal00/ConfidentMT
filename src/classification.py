@@ -3,12 +3,13 @@ import dataUtils
 from tqdm.notebook import tqdm
 import numpy as np
 
-def precisionCurveFromClassification(trainTranslations, testTranslations, classifier, FairseqWrapper, thresholds, featureIndices):
+def precisionCurveFromClassification(trainTranslations, testTranslations, classifier, FairseqWrapper, thresholds, featureIndices, normalizeFeatures=[]):
     acceptedFractions = []
     acceptedScores = []
 
     for threshold in tqdm(thresholds):
         trainX, trainY, testX, testY = dataUtils.getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices)
+        trainX, testX = dataUtils.normalizeFeatures(trainX, testX, normalizeFeatures)
         currClassifier = classifierTrainers.getTrainerFromClassifier(classifier)(trainX, trainY)
         predictions = currClassifier.predict(testX)
 
@@ -23,10 +24,11 @@ def precisionCurveFromClassification(trainTranslations, testTranslations, classi
 
     return acceptedFractions, acceptedScores
 
-def verboseTraining(trainTranslations, testTranslations, classifier, FairseqWrapper, threshold, featureIndices):
+def verboseTraining(trainTranslations, testTranslations, classifier, FairseqWrapper, threshold, featureIndices, normalizeFeatures=[]):
     
     print("#################################################")
     trainX, trainY, testX, testY = dataUtils.getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices)
+    trainX, testX = dataUtils.normalizeFeatures(trainX, testX, normalizeFeatures)
     currClassifier = classifierTrainers.getTrainerFromClassifier(classifier)(trainX, trainY, verbose=True)
 
     print("Train Accuracy")
