@@ -32,7 +32,7 @@ class CustomEnsembleClassifier:
 def trainLogisticRegressionClassifier(X, Y, verbose=False):
     if verbose:
         print("Traning Logistic Regression Classifier")
-    clf = LogisticRegression(random_state=42)
+    clf = LogisticRegression(random_state=42, max_iter=1000)
     clf.fit(X, Y)
     return clf
 
