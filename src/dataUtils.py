@@ -72,7 +72,7 @@ def compute_excluded_included_score(acceptedTranslations, rejectedTranslations, 
     return float(exclusion_result_string), float(inclusion_result_string)
 
 
-def getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices):
+def getClassifierTrainTestSets(trainTranslations, testTranslations, threshold, featureIndices):
     trainFeatures = []
     trainY = []
     testFeatures = []
@@ -94,6 +94,22 @@ def getTrainTestSets(trainTranslations, testTranslations, threshold, featureIndi
 
     return trainFeatures, trainY, testFeatures, testY
 
+
+def getRegressionTrainTestSets(trainTranslations, testTranslations, featureIndices):
+    trainFeatures = []
+    trainY = []
+    testFeatures = []
+    testY = []
+    
+    for translation in trainTranslations:
+        trainFeatures.append([translation.features[i] for i in featureIndices])
+        trainY.append(translation.sbleu)
+    
+    for translation in testTranslations:
+        testFeatures.append([translation.features[i] for i in featureIndices])
+        testY.append(translation.sbleu)
+    
+    return trainFeatures, trainY, testFeatures, testY
 
 
 def printDatasetClassProp(Y): 
