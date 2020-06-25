@@ -103,11 +103,11 @@ def getRegressionTrainTestSets(trainTranslations, testTranslations, featureIndic
     
     for translation in trainTranslations:
         trainFeatures.append([translation.features[i] for i in featureIndices])
-        trainY.append(translation.sbleu)
+        trainY.append(translation.sbleu/100) #scale to [0,1]
     
     for translation in testTranslations:
         testFeatures.append([translation.features[i] for i in featureIndices])
-        testY.append(translation.sbleu)
+        testY.append(translation.sbleu/100) #scale to [0,1]
     
     return trainFeatures, trainY, testFeatures, testY
 
