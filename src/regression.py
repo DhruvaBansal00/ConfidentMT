@@ -24,3 +24,29 @@ def precisionCurveFromRegressor(trainTranslations, testTranslations, regressor, 
     acceptedFractions.sort()
 
     return acceptedFractions, acceptedScores
+
+def verboseTraining(trainTranslations, testTranslations, regressor, FairseqWrapper, threshold, featureIndices, normalizeFeatures=[]):
+    
+    print("#################################################")
+    trainX, trainY, testX, testY = dataUtils.getRegressionTrainTestSets(trainTranslations, testTranslations, featureIndices)
+    trainX, testX = dataUtils.normalizeFeatures(trainX, testX, normalizeFeatures)
+    currRegressor = regressorTrainers.getTrainerFromRegressor(regressor)(trainX, trainY, verbose=True)
+
+    print("Train Accuracy")
+    predictions = [int(i > threshold) for i in currRegressor.predict(trainX)]
+    dataUtils.calculateAccuracy(predictions, trainY)
+    print("Percent acepted = " + str(100 * dataUtils.calculatedAcceptedFraction(predictions)))
+    acceptedTranslations = np.array(trainTranslations)[np.array(predictions) > 0]
+    rejectedTranslations = np.array(trainTranslations)[np.array(predictions) < 1]
+    _, acceptedScore = dataUtils.compute_excluded_included_score(acceptedTranslations, rejectedTranslations, FairseqWrapper)
+    print("Corpus BLEU score of accepted translations = " + str(acceptedScore))
+
+    print("Test Accuracy")
+    predictions = [int(i > threshold) for i in currRegressor.predict(trainX)]
+    dataUtils.calculateAccuracy(predictions, testY)
+    print("Percent acepted = " + str(100 * dataUtils.calculatedAcceptedFraction(predictions)))
+    acceptedTranslations = np.array(testTranslations)[np.array(predictions) > 0]
+    rejectedTranslations = np.array(testTranslations)[np.array(predictions) < 1]
+    _, acceptedScore = dataUtils.compute_excluded_included_score(acceptedTranslations, rejectedTranslations, FairseqWrapper)
+    print("Corpus BLEU score of accepted translations = " + str(acceptedScore))
+    print("#################################################")
