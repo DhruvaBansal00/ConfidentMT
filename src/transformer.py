@@ -42,20 +42,10 @@ class ClassificationTransformer(nn.Module):
         self.word_embedding = nn.Embedding(self.vocab_size, self.word_embedding_dim)
         self.positional_embedding = nn.Embedding(self.max_length, self.word_embedding_dim)
 
-        # Head #1
-        self.k1 = nn.Linear(self.hidden_dim, self.dim_k)
-        self.v1 = nn.Linear(self.hidden_dim, self.dim_v)
-        self.q1 = nn.Linear(self.hidden_dim, self.dim_q)
-        
-        # Head #2
-        self.k2 = nn.Linear(self.hidden_dim, self.dim_k)
-        self.v2 = nn.Linear(self.hidden_dim, self.dim_v)
-        self.q2 = nn.Linear(self.hidden_dim, self.dim_q)
-
-        # # Multi-Heads
-        # self.k = [nn.Linear(self.hidden_dim, self.dim_k) for i in range(self.num_heads)]
-        # self.v = [nn.Linear(self.hidden_dim, self.dim_v) for i in range(self.num_heads)]
-        # self.q = [nn.Linear(self.hidden_dim, self.dim_q) for i in range(self.num_heads)]
+        # Multi-Heads
+        self.k = [nn.Linear(self.hidden_dim, self.dim_k) for i in range(self.num_heads)]
+        self.v = [nn.Linear(self.hidden_dim, self.dim_v) for i in range(self.num_heads)]
+        self.q = [nn.Linear(self.hidden_dim, self.dim_q) for i in range(self.num_heads)]
         
         self.softmax = nn.Softmax(dim=2)
         self.attention_head_projection = nn.Linear(self.dim_v * self.num_heads, self.hidden_dim)
@@ -70,10 +60,6 @@ class ClassificationTransformer(nn.Module):
         self.final = nn.Linear(self.hidden_dim, 1)
         self.sig = nn.Sigmoid()
 
-        self.k = [self.k1, self.k2]
-        self.v = [self.v1, self.v2]
-        self.q = [self.q1, self.q2]
-        
     def forward(self, inputs):
         '''
         This function computes the full Transformer forward pass.
