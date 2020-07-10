@@ -9,10 +9,7 @@ def split_by_char(word):
     new_word = word.replace(",", " ").replace(";", " ").replace(".", " ")
     return new_word.split(" ")
 
-def createDataset(translations, threshold):
-    word_to_idx = {'CLS': 0, 'SEP': 1}
-    curr_idx = 2
-
+def createDatasetHelper(translations, threshold, word_to_idx, curr_idx):
     data = []
     labels = []
     
@@ -33,5 +30,13 @@ def createDataset(translations, threshold):
         data.append(currData)
         labels.append(1 if translation.sbleu > threshold else 0)
     
-    return data, labels
+    return data, labels, word_to_idx, curr_idx
 
+def createDataset(trainTranslations, testTranslations, threshold):
+    word_to_idx = {'CLS': 0, 'SEP': 1}
+    curr_idx = 2
+
+    trainData, trainLabels, word_to_idx, curr_idx = createDatasetHelper(trainTranslations, threshold, word_to_idx, curr_idx)
+    testData, testlabels, _, _ = createDatasetHelper(testTranslations, threshold, word_to_idx, curr_idx)
+
+    return np.array(trainData), np.array(trainLabels), np.array(testData), np.array(testlabels)
