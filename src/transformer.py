@@ -18,20 +18,20 @@ def createDataset(translations, threshold):
     
     for translation in translations:
         ##remember to split by period, comma and semi-colon as well
-        currData = []
-        hypothesis_arr = translation.hypothesis.split(" ")
+        currData = [0]
+        hypothesis_arr = translation.hypothesis.strip("\n").split(" ")
         for word in hypothesis_arr:
             separated_words = split_by_char(word)
             for curr_index, sep_word in enumerate(separated_words):
-                if word_to_idx[sep_word] is None:
-                    word_to_idx[sep_word] = curr_idx
-                    curr_idx += 1
-                currData.append(word_to_idx[sep_word])
-                if curr_index != (len(separated_words) - 1):
-                    currData.append(word_to_idx['SEP'])
-        
+                if len(sep_word) > 0:
+                    if sep_word not in word_to_idx:
+                        word_to_idx[sep_word] = curr_idx
+                        curr_idx += 1
+                    currData.append(word_to_idx[sep_word])
+                    if curr_index != (len(separated_words) - 1):
+                        currData.append(word_to_idx['SEP'])
         data.append(currData)
         labels.append(1 if translation.sbleu > threshold else 0)
-
+    
     return data, labels
 
