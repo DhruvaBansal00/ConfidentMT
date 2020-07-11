@@ -96,6 +96,11 @@ def trainTransformer(model, params, train_iter):
 
     return model
 
+def batchify(data, batchSize):
+    batched_data = [ data[i : min(i + batchSize, len(data))] for i in range(0, len(data), batchSize) ] 
+    return np.array(batched_data) 
+
+
 def getClassifierTransformer(trainTranslations, testTranslations, threshold, params):
 
     hidden_dim = params['hidden_dim']
@@ -110,7 +115,7 @@ def getClassifierTransformer(trainTranslations, testTranslations, threshold, par
     trainData, trainLabels, testData, testLabels, word_to_idx = createDataset(trainTranslations, testTranslations, threshold, max_length)
     model = ClassificationTransformer(word_to_idx, hidden_dim=hidden_dim, num_heads=num_heads, dim_feedforward=dim_feedforward, dim_k=dim_k, 
                                   dim_v=dim_v, dim_q=dim_q, max_length=max_length)
-    
-    model = trainTransformer(model, params)
+    train_iters = batchify(trainData, batch_size)
+    model = trainTransformer(model, params, train_iters)
 
     
