@@ -43,7 +43,7 @@ def createDataset(trainTranslations, testTranslations, threshold, maxLength=100)
 
     return np.array(trainData), np.array(trainLabels), np.array(testData), np.array(testLabels), word_to_idx
 
-def trainTransformer(model, params, train_iter):
+def trainTransformer(model, params, train_iter, train_labels, print_every=10):
     lr = params['lr']
     eps = params['eps']
     epochs = params['epochs']
@@ -60,45 +60,28 @@ def trainTransformer(model, params, train_iter):
 
     for epoch in range(epochs):
         for i, batch in enumerate(train_iter):
-            src = batch.English.transpose(0,1)
-            trg = batch.French.transpose(0,1)
-            # the French sentence we input has all words except
-            # the last, as it is using each word to predict the next
-            
-            trg_input = trg[:, :-1]
-            
-            # the words we are trying to predict
-            
-            targets = trg[:, 1:].contiguous().view(-1)
-            
-            # create function to make masks using mask code above
-            
-            src_mask, trg_mask = create_masks(src, trg_input)
-            
-            preds = model(src, trg_input, src_mask, trg_mask)
-            
+            modelInput = batch
+            modelOutput = train_labels[i]
+            preds = model(modelInput)
             optim.zero_grad()
             
-            loss = F.cross_entropy(preds.view(-1, preds.size(-1)),
-            results, ignore_index=target_pad)
+            loss = F.cross_entropy(preds, modelOutput)
             loss.backward()
             optim.step()
             
             total_loss += loss.data[0]
             if (i + 1) % print_every == 0:
                 loss_avg = total_loss / print_every
-                print("time = %dm, epoch %d, iter = %d, loss = %.3f,
-                %ds per %d iters" % ((time.time() - start) // 60,
-                epoch + 1, i + 1, loss_avg, time.time() - temp,
-                print_every))
+                print("time = %dm, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % ((time.time() - start) // 60, epoch + 1, i + 1, loss_avg, time.time() - temp, print_every))
                 total_loss = 0
                 temp = time.time()
 
     return model
 
-def batchify(data, batchSize):
+def batchify(data, labels, batchSize):
     batched_data = [ data[i : min(i + batchSize, len(data))] for i in range(0, len(data), batchSize) ] 
-    return np.array(batched_data) 
+    batched_labels = [ labels[i : min(i + batchSize, len(labels))] for i in range(0, len(labels), batchSize) ] 
+    return np.array(batched_data), np.array(batched_labels)
 
 
 def getClassifierTransformer(trainTranslations, testTranslations, threshold, params):
@@ -111,11 +94,12 @@ def getClassifierTransformer(trainTranslations, testTranslations, threshold, par
     dim_q = params['dim_q']
     max_length = params['max_length']
     batch_size = params['batch_size']
+    print_every = params['verbosity']
 
     trainData, trainLabels, testData, testLabels, word_to_idx = createDataset(trainTranslations, testTranslations, threshold, max_length)
     model = ClassificationTransformer(word_to_idx, hidden_dim=hidden_dim, num_heads=num_heads, dim_feedforward=dim_feedforward, dim_k=dim_k, 
                                   dim_v=dim_v, dim_q=dim_q, max_length=max_length)
-    train_iters = batchify(trainData, batch_size)
-    model = trainTransformer(model, params, train_iters)
+    train_iters, train_labels = batchify(trainData, batch_size)
+    model = trainTransformer(model, params, train_iters, train_labels, print_every)
 
     
