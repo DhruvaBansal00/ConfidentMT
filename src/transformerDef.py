@@ -78,6 +78,7 @@ class ClassificationTransformer(nn.Module):
         :param inputs: intTensor of shape (N,T)
         :returns embeddings: floatTensor of shape (N,T,H)
         """
+        input_mask = ( inputs != 0 ).unsqueeze(1)
         embeddings = self.word_embedding(inputs) + self.positional_embedding(torch.LongTensor([i for i in range(self.max_length)]))
         return embeddings
         
