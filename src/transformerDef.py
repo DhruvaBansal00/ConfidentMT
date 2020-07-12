@@ -57,7 +57,7 @@ class ClassificationTransformer(nn.Module):
         self.F2 = nn.Linear(self.dim_feedforward, self.hidden_dim)
         self.norm_ffn = nn.LayerNorm(self.hidden_dim)
 
-        self.final = nn.Linear(self.hidden_dim, 1)
+        self.final = nn.Linear(self.hidden_dim, 2)
         self.sig = nn.Sigmoid()
 
     def forward(self, inputs):
@@ -123,7 +123,8 @@ class ClassificationTransformer(nn.Module):
         """
         outputs = None
         inputs = inputs[:,0,:]
-        outputs = self.sig(self.final(inputs))
+        outputs = self.final(inputs)
+        # outputs = self.sig(self.final(inputs))
         return outputs
         
 

@@ -1,8 +1,10 @@
 import numpy as np
 import torch
 from torch import nn
+import torch.nn.functional as F
 import random
 import math
+import time
 from transformerDef import ClassificationTransformer
 
 def split_by_char(word):
@@ -14,7 +16,6 @@ def createDatasetHelper(translations, threshold, word_to_idx, curr_idx, maxLengt
     labels = []
     
     for translation in translations:
-        ##remember to split by period, comma and semi-colon as well
         currData = []
         hypothesis_arr = translation.hypothesis.strip("\n").split(" ")
         for word in hypothesis_arr:
@@ -34,14 +35,14 @@ def createDatasetHelper(translations, threshold, word_to_idx, curr_idx, maxLengt
     
     return data, labels, word_to_idx, curr_idx
 
-def createDataset(trainTranslations, testTranslations, threshold, maxLength=100):
+def createDataset(trainTranslations, testTranslations, threshold, maxLength):
     word_to_idx = {'CLS': 0, 'SEP': 1}
     curr_idx = 2
 
     trainData, trainLabels, word_to_idx, curr_idx = createDatasetHelper(trainTranslations, threshold, word_to_idx, curr_idx, maxLength)
     testData, testLabels, word_to_idx, _ = createDatasetHelper(testTranslations, threshold, word_to_idx, curr_idx, maxLength)
 
-    return np.array(trainData), np.array(trainLabels), np.array(testData), np.array(testLabels), word_to_idx
+    return trainData, trainLabels, testData, testLabels, word_to_idx
 
 def trainTransformer(model, params, train_iter, train_labels, print_every=10):
     lr = params['lr']
@@ -59,29 +60,30 @@ def trainTransformer(model, params, train_iter, train_labels, print_every=10):
     total_loss = 0
 
     for epoch in range(epochs):
+
         for i, batch in enumerate(train_iter):
-            modelInput = batch
-            modelOutput = train_labels[i]
-            preds = model(modelInput)
+            model_input = torch.LongTensor(batch)
+            model_target = torch.LongTensor(train_labels[i])
+            preds = model(model_input)
             optim.zero_grad()
-            
-            loss = F.cross_entropy(preds, modelOutput)
+            loss = F.cross_entropy(preds, model_target)
             loss.backward()
             optim.step()
-            
-            total_loss += loss.data[0]
-            if (i + 1) % print_every == 0:
-                loss_avg = total_loss / print_every
-                print("time = %dm, epoch %d, iter = %d, loss = %.3f, %ds per %d iters" % ((time.time() - start) // 60, epoch + 1, i + 1, loss_avg, time.time() - temp, print_every))
-                total_loss = 0
-                temp = time.time()
+            total_loss += loss.data
+        
+        if epoch % print_every == 0:
+            loss_avg = total_loss / print_every
+            print(f"time = {(time.time() - start) / 60}, epoch {epoch + 1}, loss = {loss_avg}, {time.time() - temp} seconds per {print_every} epochs")
+            # print("time = %dm, epoch %d, loss = %.3f, %ds per %d epochs", (time.time() - start) / 60, epoch + 1, loss_avg, time.time() - temp, print_every)
+            total_loss = 0
+            temp = time.time()
 
     return model
 
 def batchify(data, labels, batchSize):
     batched_data = [ data[i : min(i + batchSize, len(data))] for i in range(0, len(data), batchSize) ] 
-    batched_labels = [ labels[i : min(i + batchSize, len(labels))] for i in range(0, len(labels), batchSize) ] 
-    return np.array(batched_data), np.array(batched_labels)
+    batched_labels = [ labels[i : min(i + batchSize, len(labels))] for i in range(0, len(labels), batchSize) ]
+    return batched_data, batched_labels
 
 
 def getClassifierTransformer(trainTranslations, testTranslations, threshold, params):
@@ -99,7 +101,8 @@ def getClassifierTransformer(trainTranslations, testTranslations, threshold, par
     trainData, trainLabels, testData, testLabels, word_to_idx = createDataset(trainTranslations, testTranslations, threshold, max_length)
     model = ClassificationTransformer(word_to_idx, hidden_dim=hidden_dim, num_heads=num_heads, dim_feedforward=dim_feedforward, dim_k=dim_k, 
                                   dim_v=dim_v, dim_q=dim_q, max_length=max_length)
-    train_iters, train_labels = batchify(trainData, batch_size)
+    train_iters, train_labels = batchify(trainData, trainLabels, batch_size)
     model = trainTransformer(model, params, train_iters, train_labels, print_every)
+    return model
 
     
