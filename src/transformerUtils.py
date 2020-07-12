@@ -7,6 +7,20 @@ import math
 import time
 from transformerDef import ClassificationTransformer
 
+def calculateAccuracy(model, data, labels):
+    model_predictions = model(data)
+    num_correct = sum([ labels[i] == round(model_predictions[i]) for i in range(len(labels)) ])
+    return float(num_correct)/float(len(labels))
+
+def calculateAccFromBatches(model, data, labels):
+    acc = []
+    total_elements = 0
+    for i, batch in enumerate(data):
+        total_elements += batch.numel()
+        acc.append(calculateAccuracy(model, batch, labels[i]))
+    acc = [ float(acc[i]*data[i].numel())/float(total_elements) for i in range(len(acc)) ]
+    return sum(acc)
+
 def split_by_char(word):
     new_word = word.replace(",", " ").replace(";", " ").replace(".", " ")
     return new_word.split(" ")
@@ -72,9 +86,9 @@ def trainTransformer(model, params, train_iter, train_labels, print_every=10):
             total_loss += loss.data
         
         if epoch % print_every == 0:
+            curr_training_acc = calculateAccFromBatches(model, train_iter, train_labels)
             loss_avg = total_loss / print_every
             print(f"time = {(time.time() - start) / 60}, epoch {epoch + 1}, loss = {loss_avg}, {time.time() - temp} seconds per {print_every} epochs")
-            # print("time = %dm, epoch %d, loss = %.3f, %ds per %d epochs", (time.time() - start) / 60, epoch + 1, loss_avg, time.time() - temp, print_every)
             total_loss = 0
             temp = time.time()
 
@@ -105,4 +119,4 @@ def getClassifierTransformer(trainTranslations, testTranslations, threshold, par
     model = trainTransformer(model, params, train_iters, train_labels, print_every)
     return model
 
-    
+
